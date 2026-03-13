@@ -1,20 +1,11 @@
 [
   {
-    "name": "Steve",
-    "symbol": "Steve",
+    "name": "extreme slippage",
+    "symbol": "SLIPPAGE",
     "time": "未知",
     "price": "N/A",
     "liquidity": 0,
     "tx_count": 0,
-    "contract": "QJv3zuzzqoTKFtQ7CsxNt471rtr8ZTbkaGCmuLLpump"
-  },
-  {
-    "name": "ALL HEIL KING TRUMP",
-    "symbol": "AHKT",
-    "time": "未知",
-    "price": "N/A",
-    "liquidity": 0,
-    "tx_count": 0,
-    "contract": "698xx4HVydgu4WYziJbydavkWJQmfoSxfAoYjq8qpump"
+    "contract": "65wa9M7n5wCLCmkPxiZxqKqJKi2NubHNXntHndLLpump"
   }
 ]
