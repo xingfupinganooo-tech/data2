@@ -178,5 +178,14 @@
     "liquidity": 0,
     "tx_count": 0,
     "contract": "DUVESzuqR474jVWmj6nLFqYcPRVmdW3xnMF5p2ijpump"
+  },
+  {
+    "name": "burger",
+    "symbol": "burg",
+    "time": "未知",
+    "price": "N/A",
+    "liquidity": 0,
+    "tx_count": 0,
+    "contract": "7sAkqAjdKxv7r41XWEB77tUxwfFtNL93swViCJippump"
   }
 ]
