@@ -115,5 +115,14 @@
     "liquidity": 0,
     "tx_count": 0,
     "contract": "irZfz5HVwKqQ1CCzJc1PgsEXFycJoEk6Go1vtynpump"
+  },
+  {
+    "name": "peecoin",
+    "symbol": "peecoin",
+    "time": "未知",
+    "price": "N/A",
+    "liquidity": 0,
+    "tx_count": 0,
+    "contract": "A89dXomwaFrZt9bujzdHuYgQ8SqsjKFmcDJyFmhApump"
   }
 ]
