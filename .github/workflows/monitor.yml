@@ -22,10 +22,10 @@ jobs:
 
       - name: Run monitor
          env:
-            MORALIS_KEY: ${{ secrets.MORALIS_KEY }}
-            WECHAT_URL: ${{ secrets.WECHAT_URL }}
+             MORALIS_KEY: ${{ secrets.MORALIS_KEY }}
+             WECHAT_URL: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-"
          run: python monitor.py
-
+                         
       - name: Commit and push if changed
         run: |
           git config --global user.name 'github-actions[bot]'
