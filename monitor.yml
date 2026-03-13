@@ -2,8 +2,8 @@ name: Token Monitor
 
 on:
   schedule:
-    - cron: '*/10 * * * *'   # 每10分钟运行一次
-  workflow_dispatch:          # 允许手动触发
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
 
 jobs:
   monitor:
@@ -24,7 +24,10 @@ jobs:
         env:
           MORALIS_KEY: ${{ secrets.MORALIS_KEY }}
           WECHAT_URL: ${{ secrets.WECHAT_URL }}
-        run: python monitor.py
+        run: |
+          echo "MORALIS_KEY 长度: ${#MORALIS_KEY}"
+          echo "WECHAT_URL 长度: ${#WECHAT_URL}"
+          python monitor.py
 
       - name: Commit and push if changed
         run: |
