@@ -43,5 +43,14 @@
     "liquidity": 0,
     "tx_count": 0,
     "contract": "BwrfZxGHkN8r41gLJ6qJzqS1E873KK49v9MEMqgdpump"
+  },
+  {
+    "name": "Domer",
+    "symbol": "HomerDomer",
+    "time": "未知",
+    "price": "N/A",
+    "liquidity": 0,
+    "tx_count": 0,
+    "contract": "4JFinnysHWpwte21xbGnE8pvLremtXCgwYxyWGwSpump"
   }
 ]
