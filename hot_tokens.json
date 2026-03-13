@@ -151,5 +151,14 @@
     "liquidity": 0,
     "tx_count": 0,
     "contract": "77Yic29zUw3gVFr3KziRodFdMsyxfqmGd6wPGLoyTnvP"
+  },
+  {
+    "name": "PackD",
+    "symbol": "PackD",
+    "time": "未知",
+    "price": "N/A",
+    "liquidity": 0,
+    "tx_count": 0,
+    "contract": "33Ba8tWGZZeXggPZo55dfcL5Zuz3GffXwCsaVxV6pump"
   }
 ]
