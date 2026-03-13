@@ -160,5 +160,14 @@
     "liquidity": 0,
     "tx_count": 0,
     "contract": "33Ba8tWGZZeXggPZo55dfcL5Zuz3GffXwCsaVxV6pump"
+  },
+  {
+    "name": "VirtualLambo",
+    "symbol": "VLAMB",
+    "time": "未知",
+    "price": "N/A",
+    "liquidity": 0,
+    "tx_count": 0,
+    "contract": "FiSUzeoTKtTPD433UV8Aa2AYfDDHAvEAx44H9vq51fC3"
   }
 ]
