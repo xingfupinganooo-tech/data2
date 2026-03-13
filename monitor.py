@@ -1,28 +1,29 @@
 # -*- coding: utf-8 -*-
-import requests
-import time
-import json
-import os
-from datetime import datetime
-
 import os
 import sys
+import json
+import requests
+import time
+from datetime import datetime
 
+# === 调试信息（看看环境变量到底有没有）===
 print("=== 环境变量调试 ===")
-print(f"当前工作目录: {os.getcwd()}")
-print(f"所有环境变量: {list(os.environ.keys())}")
 print(f"MORALIS_KEY 是否存在: {'MORALIS_KEY' in os.environ}")
 print(f"WECHAT_URL 是否存在: {'WECHAT_URL' in os.environ}")
-print("==================")
+print("===================")
 
-# ===== 配置（从环境变量读取）=====
+# === 读取环境变量 ===
 MORALIS_KEY = os.getenv('MORALIS_KEY')
 WECHAT_URL = os.getenv('WECHAT_URL')
-JSON_PATH = "hot_tokens.json"
 
 # 检查密钥是否为空
 if not MORALIS_KEY or not WECHAT_URL:
-    print("❌ 错误：请设置环境变量 MORALIS_KEY 和 WECHAT_URL")
+    print("❌ 错误：环境变量未设置")
+    print(f"MORALIS_KEY = {MORALIS_KEY}")
+    print(f"WECHAT_URL = {WECHAT_URL}")
+    sys.exit(1)
+
+print("✅ 环境变量读取成功")
     exit(1)
 # ================================
 
