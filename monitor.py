@@ -28,10 +28,10 @@ print("✅ 环境变量读取成功")
 
 # 已推送记录（避免重复）
 pushed = set()
-all_tokens = []  # 存储所有筛选出的代币
+  all_tokens = []  # 存储所有筛选出的代币
 
-# ---------- 辅助函数 ----------
-def send_wechat(contract, category=""):
+  # --------- 辅助函数 ----------
+  def send_wechat(contract, category=""):
     """推送合约地址到微信（可选加分类）"""
     try:
         msg = f"【{category}】\\n{contract}" if category else contract
