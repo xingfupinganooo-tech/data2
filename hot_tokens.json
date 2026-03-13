@@ -25,5 +25,14 @@
     "liquidity": 0,
     "tx_count": 0,
     "contract": "ESLBGzAKjgPhuNyqzMv5JyZeencei5ndsGZ22ndRpump"
+  },
+  {
+    "name": "Claw Job",
+    "symbol": "CLAWJOB",
+    "time": "未知",
+    "price": "N/A",
+    "liquidity": 0,
+    "tx_count": 0,
+    "contract": "J2xE9WBB7LMtypp4japJ494hwgnkqPKLgJNZiKZVpump"
   }
 ]
