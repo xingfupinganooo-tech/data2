@@ -6,6 +6,14 @@ import os
 from datetime import datetime
 
 import os
+import sys
+
+print("=== 环境变量调试 ===")
+print(f"当前工作目录: {os.getcwd()}")
+print(f"所有环境变量: {list(os.environ.keys())}")
+print(f"MORALIS_KEY 是否存在: {'MORALIS_KEY' in os.environ}")
+print(f"WECHAT_URL 是否存在: {'WECHAT_URL' in os.environ}")
+print("==================")
 
 # ===== 配置（从环境变量读取）=====
 MORALIS_KEY = os.getenv('MORALIS_KEY')
