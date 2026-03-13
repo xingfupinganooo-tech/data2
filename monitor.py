@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 import sys
 import json
@@ -6,7 +5,7 @@ import requests
 import time
 from datetime import datetime
 
-# === 调试信息（看看环境变量到底有没有）===
+# === 调试信息 ===
 print("=== 环境变量调试 ===")
 print(f"MORALIS_KEY 是否存在: {'MORALIS_KEY' in os.environ}")
 print(f"WECHAT_URL 是否存在: {'WECHAT_URL' in os.environ}")
@@ -16,23 +15,22 @@ print("===================")
 MORALIS_KEY = os.getenv('MORALIS_KEY')
 WECHAT_URL = os.getenv('WECHAT_URL')
 
-# 检查密钥是否为空
 if not MORALIS_KEY or not WECHAT_URL:
     print("❌ 错误：环境变量未设置")
     print(f"MORALIS_KEY = {MORALIS_KEY}")
     print(f"WECHAT_URL = {WECHAT_URL}")
     sys.exit(1)
+
 print("✅ 环境变量读取成功")
-   exit(1)
-# ================================
 
-# 已推送记录（避免重复）
+# === 配置 ===
+JSON_PATH = "hot_tokens.json"
 pushed = set()
-  all_tokens = []  # 存储所有筛选出的代币
+all_tokens = []
 
-  # --------- 辅助函数 ----------
-  def send_wechat(contract, category=""):
-    """推送合约地址到微信（可选加分类）"""
+# === 辅助函数 ===
+def send_wechat(contract, category=""):
+    """推送合约地址到微信"""
     try:
         msg = f"【{category}】\\n{contract}" if category else contract
         requests.post(WECHAT_URL, json={"msgtype": "text", "text": {"content": msg}}, timeout=5)
@@ -64,14 +62,14 @@ def get_dex_data(addr):
                 'liq': pair.get('liquidity', {}).get('usd', 0),
                 'price': float(pair.get('priceUsd', 0)),
                 'vol': pair.get('volume', {}).get('h24', 0),
-                'image': info.get('imageUrl', '')  # 代币图片
+                'image': info.get('imageUrl', '')
             }
     except:
         pass
     return {'tx': 0, 'liq': 0, 'price': 0, 'vol': 0, 'image': ''}
 
 def classify_token(token, dex):
-    """根据条件分类（你可以自由修改这里的逻辑）"""
+    """给代币分类"""
     name = token.get('name', '')
     sym = token.get('symbol', '')
     twitter = token.get('twitter', '')
@@ -83,7 +81,6 @@ def classify_token(token, dex):
     category = None
     reason = []
 
-    # ===== 你的分类规则（按需调整）=====
     if has_twitter and minutes < 10:
         category = "🔥早期"
         reason.append("新币")
@@ -99,20 +96,17 @@ def classify_token(token, dex):
     if has_twitter and dex['tx'] > 200 and dex['liq'] > 2000 and dex['price'] < 0.001:
         category = "💎优质"
         reason.append("优质标的")
-    # 潜力：可以基于推特转发数（需要真实API，这里用模拟）
     if has_twitter:
-        # 这里可以接入真实推特API获取转发数，暂时用随机模拟
         import random
         retweets = random.randint(10, 300)
         if retweets > 100 and dex['price'] < 0.001:
             category = "⭐潜力"
             reason.append("社区热度")
-    # =================================
 
     return category, ", ".join(reason)
 
 def process_token(token):
-    """处理单个代币：判断是否合格，合格则保存并推送"""
+    """处理单个代币"""
     addr = token.get('tokenAddress')
     if not addr or addr in pushed:
         return None
@@ -121,9 +115,8 @@ def process_token(token):
     category, reason = classify_token(token, dex)
 
     if not category:
-        return None  # 不符合任何分类，忽略
+        return None
 
-    # 组装数据
     token_data = {
         'name': token.get('name', '未知'),
         'symbol': token.get('symbol', '未知'),
@@ -139,15 +132,11 @@ def process_token(token):
         'timestamp': int(time.time())
     }
 
-    # 推送合约地址到微信（只发合约，如需加分类可加上）
     send_wechat(addr, category)
-
-    # 记录已推送
-    pushed.add(addr)
     return token_data
 
 def save_json():
-    """保存数据到JSON（供网页读取）"""
+    """保存数据到JSON"""
     try:
         with open(JSON_PATH, 'w', encoding='utf-8') as f:
             json.dump(all_tokens, f, ensure_ascii=False, indent=2)
@@ -155,9 +144,9 @@ def save_json():
     except Exception as e:
         print(f"❌ JSON保存失败: {e}")
 
-def main_loop():
-    global all_tokens
+def main():
     print("🚀 监控启动...")
+    global all_tokens, pushed
     while True:
         try:
             tokens = get_new_tokens()
@@ -169,7 +158,7 @@ def main_loop():
                     new += 1
             if new:
                 save_json()
-            time.sleep(60)  # 每分钟检查一次
+            time.sleep(60)
         except KeyboardInterrupt:
             print("\\n🛑 停止")
             save_json()
@@ -179,4 +168,4 @@ def main_loop():
             time.sleep(60)
 
 if __name__ == "__main__":
-    main_loop()
+    main()
