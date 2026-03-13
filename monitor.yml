@@ -1,4 +1,4 @@
-       name: Token Monitor
+name: Token Monitor
 
 on:
   schedule:
@@ -22,9 +22,13 @@ jobs:
 
       - name: Run monitor
         env:
-          MORALIS_KEY: ${{ secrets.MORALIS_KEY }}
-          WECHAT_KEY: ${{ secrets.WECHAT_KEY }}
-        run: python monitor.py
+          MORALIS_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjgzZDliN2JkLWM5YjQtNDJkYS1iMTU0LTVjMDhlOGM2YjVjZiIsIm9yZ0lkIjoiNTA0OTk2IiwidXNlcklkIjoiNTE5NjE1IiwidHlwZUlkIjoiMDMxNmRjMWUtNzhkMC00YTYwLWE4ZTEtYTQxZGQ5MzlkMjk2IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NzMzMTQ3NDYsImV4cCI6NDkyOTA3NDc0Nn0.0AWDAjP-uHoZtnX-NAWhoMA9ZJCRipdBKuBkTdlH2bw"
+          WECHAT_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4-4895-9069-212f4698c3b6"
+         
+        run: |
+          echo "MORALIS_KEY 长度: ${#MORALIS_KEY}"
+          echo "WECHAT_URL 长度: ${#WECHAT_URL}"
+          python monitor.py
 
       - name: Commit and push if changed
         run: |
