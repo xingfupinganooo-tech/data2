@@ -1,1 +1,27 @@
+name: Monitor
 
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # 每5分钟运行一次
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install requests
+      - name: Run monitor
+        env:
+          MORALIS_KEY: ${{ secrets.MORALIS_KEY }}
+          WECHAT_URL: ${{ secrets.WECHAT_URL }}
+        run: python monitor.py
+      - name: Commit and push if changed
+        run: |
+          git config user.name 'github-actions'
+          git config user.email 'actions@github.com'
+          git add hot_tokens.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "更新数据" && git push)
