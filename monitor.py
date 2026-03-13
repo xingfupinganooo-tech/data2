@@ -22,9 +22,8 @@ if not MORALIS_KEY or not WECHAT_URL:
     print(f"MORALIS_KEY = {MORALIS_KEY}")
     print(f"WECHAT_URL = {WECHAT_URL}")
     sys.exit(1)
-
 print("✅ 环境变量读取成功")
-    exit(1)
+   exit(1)
 # ================================
 
 # 已推送记录（避免重复）
