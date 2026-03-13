@@ -1,666 +1,82 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TokenRadar · ave.ai风格监控</title>
-    <!-- Font Awesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- ECharts -->
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <title>优质代币监控</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        body {
-            background: #0a0c0f;
-            color: #e5e7eb;
-            overflow: hidden;
-        }
-
-        .app {
-            display: flex;
-            height: 100vh;
-            width: 100%;
-        }
-
-        /* 左侧导航栏 */
-        .sidebar {
-            width: 280px;
-            background: #0f1217;
-            border-right: 1px solid #22262e;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid #22262e;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-icon {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, #f5b101, #ffd966);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 22px;
-            color: #0f1217;
-        }
-
-        .logo-text {
-            font-weight: 700;
-            font-size: 22px;
-            color: white;
-        }
-
-        .logo-text span {
-            color: #f5b101;
-            font-size: 14px;
-            margin-left: 4px;
-        }
-
-        .nav-menu {
-            flex: 1;
-            padding: 20px 12px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            color: #9aa8b9;
-            margin-bottom: 4px;
-            cursor: pointer;
-        }
-
-        .nav-item.active {
-            background: #f5b10115;
-            color: #f5b101;
-            border-left: 3px solid #f5b101;
-        }
-
-        .nav-item i {
-            width: 20px;
-        }
-
-        .user-profile {
-            margin-top: auto;
-            padding: 20px;
-            border-top: 1px solid #22262e;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: #1e2329;
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #f5b101;
-        }
-
-        /* 主内容区 */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            background: #0e1015;
-        }
-
-        .top-bar {
-            background: #0f1217;
-            border-bottom: 1px solid #22262e;
-            padding: 16px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .page-title h2 {
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .page-title span {
-            background: #1e2329;
-            padding: 4px 10px;
-            border-radius: 30px;
-            font-size: 12px;
-            color: #9aa8b9;
-        }
-
-        .search-box {
-            background: #1a1f2b;
-            border: 1px solid #2d313a;
-            border-radius: 40px;
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .search-box input {
-            background: transparent;
-            border: none;
-            color: white;
-            outline: none;
-            width: 200px;
-        }
-
-        .content-area {
-            padding: 24px;
-            overflow-y: auto;
-        }
-
-        /* 统计卡片 */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: #0f1217;
-            border: 1px solid #22262e;
-            border-radius: 16px;
-            padding: 20px;
-        }
-
-        .stat-label {
-            color: #6b7280;
-            font-size: 13px;
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: 600;
-            color: white;
-        }
-
-        .stat-change {
-            font-size: 13px;
-            margin-top: 8px;
-        }
-
-        .positive {
-            color: #10b981;
-        }
-
-        .negative {
-            color: #ef4444;
-        }
-
-        /* 图表行 */
-        .charts-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-
-        .chart-card {
-            background: #0f1217;
-            border: 1px solid #22262e;
-            border-radius: 16px;
-            padding: 20px;
-            height: 300px;
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .chart-header h3 {
-            font-size: 16px;
-            color: #cbd5e0;
-        }
-
-        .chart-container {
-            height: 240px;
-        }
-
-        /* 表格 */
-        .table-card {
-            background: #0f1217;
-            border: 1px solid #22262e;
-            border-radius: 16px;
-            padding: 20px;
-        }
-
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .table-header h3 {
-            font-size: 16px;
-            color: #cbd5e0;
-        }
-
-        .table-header button {
-            background: #1e2329;
-            border: 1px solid #2d313a;
-            color: #9aa8b9;
-            padding: 6px 14px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            text-align: left;
-            padding: 12px 16px;
-            color: #6b7280;
-            font-weight: 500;
-            font-size: 12px;
-            border-bottom: 1px solid #22262e;
-        }
-
-        td {
-            padding: 16px;
-            border-bottom: 1px solid #1e2329;
-            font-size: 14px;
-        }
-
-        .token-cell {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .token-icon {
-            width: 32px;
-            height: 32px;
-            background: #1e2329;
-            border-radius: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #f5b101;
-            font-weight: bold;
-        }
-
-        .token-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .token-name {
-            font-weight: 600;
-            color: white;
-        }
-
-        .token-symbol {
-            font-size: 12px;
-            color: #6b7280;
-        }
-
-        .sentiment-badge {
-            padding: 4px 10px;
-            border-radius: 30px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        .sentiment-positive {
-            background: #10b98120;
-            color: #10b981;
-        }
-
-        .sentiment-neutral {
-            background: #6b728020;
-            color: #9ca3af;
-        }
-
-        .sentiment-negative {
-            background: #ef444420;
-            color: #ef4444;
-        }
-
-        .contract-badge {
-            background: #1e2329;
-            padding: 6px 12px;
-            border-radius: 30px;
-            font-size: 12px;
-            color: #9aa8b9;
-            cursor: pointer;
-            display: inline-block;
-        }
-
-        .contract-badge:hover {
-            background: #f5b101;
-            color: #0f1217;
-        }
-
-        .alert-badge {
-            background: #ef4444;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 10px;
-            margin-left: 8px;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 24px;
-            color: #4b5563;
-            font-size: 12px;
-        }
+        body { font-family: sans-serif; background: #0e0e0e; color: #ddd; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #f90; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 10px; background: #222; }
+        td { padding: 10px; border-bottom: 1px solid #333; }
+        img { width: 24px; height: 24px; border-radius: 50%; vertical-align: middle; margin-right: 8px; }
+        .category { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+        .🔥早期 { background: #ff4500; color: white; }
+        .🚀高潮 { background: #ff1493; color: white; }
+        .📈中期 { background: #1e90ff; color: white; }
+        .📉低潮 { background: #808080; color: white; }
+        .💎优质 { background: gold; color: black; }
+        .⭐潜力 { background: #32cd32; color: black; }
+        .contract { font-family: monospace; background: #222; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="app">
-        <!-- 左侧导航 -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <div class="logo-icon">T</div>
-                    <div class="logo-text">Token<span>Radar</span></div>
-                </div>
-            </div>
-            <div class="nav-menu">
-                <div class="nav-item active">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Dashboard</span>
-                </div>
-                <div class="nav-item">
-                    <i class="fas fa-fire"></i>
-                    <span>Trending</span>
-                </div>
-                <div class="nav-item">
-                    <i class="fas fa-clock"></i>
-                    <span>New Pairs</span>
-                </div>
-                <div class="nav-item">
-                    <i class="fas fa-rocket"></i>
-                    <span>Gainers</span>
-                </div>
-                <div class="nav-item">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>Alerts</span>
-                </div>
-            </div>
-            <div class="user-profile">
-                <div class="user-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div>
-                    <div style="font-weight:500">Trader</div>
-                    <div style="font-size:12px; color:#6b7280">0x742...d3f2</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 主内容 -->
-        <div class="main-content">
-            <div class="top-bar">
-                <div class="page-title">
-                    <h2>
-                        Dashboard
-                        <span>实时监控</span>
-                    </h2>
-                </div>
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="搜索代币...">
-                </div>
-            </div>
-
-            <div class="content-area">
-                <!-- 统计卡片 -->
-                <div class="stats-grid" id="statsCards">
-                    <div class="stat-card">
-                        <div class="stat-label">总代币数</div>
-                        <div class="stat-value" id="totalCount">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">24h总交易量</div>
-                        <div class="stat-value" id="totalVolume">$0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">总流动性</div>
-                        <div class="stat-value" id="totalLiquidity">$0</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">预警次数</div>
-                        <div class="stat-value" id="totalAlerts">0</div>
-                    </div>
-                </div>
-
-                <!-- 图表 -->
-                <div class="charts-row">
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>交易量分布</h3>
-                        </div>
-                        <div id="volumeChart" class="chart-container"></div>
-                    </div>
-                    <div class="chart-card">
-                        <div class="chart-header">
-                            <h3>情绪分析</h3>
-                        </div>
-                        <div id="sentimentChart" class="chart-container"></div>
-                    </div>
-                </div>
-
-                <!-- 表格 -->
-                <div class="table-card">
-                    <div class="table-header">
-                        <h3>最新代币列表</h3>
-                        <button onclick="sortByVolume()"><i class="fas fa-sort"></i> 按交易量</button>
-                    </div>
-                    <div class="table-container">
-                        <table id="tokenTable">
-                            <thead>
-                                <tr>
-                                    <th>代币</th>
-                                    <th>价格</th>
-                                    <th>24h涨跌</th>
-                                    <th>交易量</th>
-                                    <th>流动性</th>
-                                    <th>情绪</th>
-                                    <th>预警</th>
-                                    <th>合约</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody">
-                                <tr><td colspan="8" style="text-align:center; padding:40px;">加载中...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="footer">
-                    TokenRadar · 数据实时同步 · 点击合约复制
-                </div>
-            </div>
-        </div>
+    <div class="container">
+        <h1>🔥 优质代币监控</h1>
+        <p>实时筛选结果 | 更新时间: <span id="update"></span></p>
+        <table id="token-table">
+            <thead>
+                <tr>
+                    <th>代币</th>
+                    <th>分类</th>
+                    <th>价格</th>
+                    <th>24h交易数</th>
+                    <th>流动性</th>
+                    <th>合约地址</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <tr><td colspan="6">加载中...</td></tr>
+            </tbody>
+        </table>
     </div>
 
     <script>
-        let allTokens = [];
-
         function copyContract(addr) {
             navigator.clipboard.writeText(addr).then(() => alert('✅ 合约已复制'));
         }
 
-        function formatNumber(num) {
-            if (num >= 1e6) return (num/1e6).toFixed(2) + 'M';
-            if (num >= 1e3) return (num/1e3).toFixed(2) + 'K';
-            return num?.toString() || '0';
-        }
-
-        function formatPrice(price) {
-            if (!price || price === 0) return '$0';
-            if (price < 0.0001) return '$' + price.toExponential(4);
-            if (price < 0.01) return '$' + price.toFixed(6);
-            return '$' + price.toFixed(4);
-        }
-
-        function getSentimentClass(sentiment) {
-            if (!sentiment) return 'sentiment-neutral';
-            if (sentiment.label === '积极') return 'sentiment-positive';
-            if (sentiment.label === '消极') return 'sentiment-negative';
-            return 'sentiment-neutral';
-        }
-
         async function loadData() {
             try {
-                const response = await fetch('hot_tokens.json?' + Date.now());
-                allTokens = await response.json();
-                
-                if (!allTokens || allTokens.length === 0) {
-                    document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;">暂无数据</td></tr>';
+                const res = await fetch('hot_tokens.json?' + Date.now());
+                const data = await res.json();
+                const tbody = document.getElementById('table-body');
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6">暂无数据</td></tr>';
                     return;
                 }
-
-                // 按时间倒序
-                allTokens.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-
-                // 更新统计
-                document.getElementById('totalCount').innerText = allTokens.length;
-                
-                const totalVolume = allTokens.reduce((sum, t) => sum + (t.volume_24h || 0), 0);
-                document.getElementById('totalVolume').innerText = '$' + formatNumber(totalVolume);
-                
-                const totalLiquidity = allTokens.reduce((sum, t) => sum + (t.liquidity || 0), 0);
-                document.getElementById('totalLiquidity').innerText = '$' + formatNumber(totalLiquidity);
-                
-                const totalAlerts = allTokens.reduce((sum, t) => sum + (t.alerts?.length || 0), 0);
-                document.getElementById('totalAlerts').innerText = totalAlerts;
-
-                // 渲染表格
                 let html = '';
-                allTokens.slice(0, 20).forEach(t => {
-                    const changeClass = (t.price_change_24h || 0) >= 0 ? 'positive' : 'negative';
-                    const changeSign = (t.price_change_24h || 0) >= 0 ? '+' : '';
-                    
+                data.reverse().forEach(t => {  // 最新的在前面
+                    const imgHtml = t.image ? `<img src="${t.image}" onerror="this.style.display='none'">` : '';
                     html += `<tr>
-                        <td>
-                            <div class="token-cell">
-                                <div class="token-icon">${(t.symbol || '??').slice(0,2)}</div>
-                                <div class="token-info">
-                                    <span class="token-name">${t.name || '未知'}</span>
-                                    <span class="token-symbol">${t.symbol || '未知'}</span>
-                                </div>
-                            </div>
-                        </td>
-                        <td>${formatPrice(t.price)}</td>
-                        <td class="${changeClass}">${changeSign}${(t.price_change_24h || 0).toFixed(2)}%</td>
-                        <td>$${formatNumber(t.volume_24h)}</td>
-                        <td>$${formatNumber(t.liquidity)}</td>
-                        <td><span class="sentiment-badge ${getSentimentClass(t.sentiment)}">${t.sentiment?.label || '中性'}</span></td>
-                        <td>${t.alerts?.length ? '<span class="alert-badge">' + t.alerts.length + '</span>' : ''}</td>
-                        <td><span class="contract-badge" onclick="copyContract('${t.contract || ''}')">${(t.contract || '').slice(0,8)}...${(t.contract || '').slice(-4)}</span></td>
+                        <td>${imgHtml} ${t.name} (${t.symbol})</td>
+                        <td><span class="category ${t.category}">${t.category}</span><br><small>${t.reason || ''}</small></td>
+                        <td>$${t.price.toFixed(8)}</td>
+                        <td>${t.tx}</td>
+                        <td>$${t.liq.toFixed(0)}</td>
+                        <td><span class="contract" onclick="copyContract('${t.contract}')">${t.contract.slice(0,6)}...${t.contract.slice(-4)}</span></td>
                     </tr>`;
                 });
-                document.getElementById('tableBody').innerHTML = html;
-
-                // 图表
-                const volChart = echarts.init(document.getElementById('volumeChart'));
-                volChart.setOption({
-                    tooltip: { trigger: 'axis' },
-                    grid: { left: '10%', right: '5%', bottom: '10%' },
-                    xAxis: { 
-                        type: 'category', 
-                        data: allTokens.slice(0,6).map(t => t.symbol || '未知'),
-                        axisLabel: { color: '#6b7280' }
-                    },
-                    yAxis: { 
-                        type: 'value', 
-                        axisLabel: { color: '#6b7280' },
-                        splitLine: { lineStyle: { color: '#22262e' } }
-                    },
-                    series: [{
-                        data: allTokens.slice(0,6).map(t => t.volume_24h || 0),
-                        type: 'bar',
-                        itemStyle: { color: '#f5b101', borderRadius: [4,4,0,0] }
-                    }]
-                });
-
-                // 情绪饼图
-                const pos = allTokens.filter(t => t.sentiment?.label === '积极').length;
-                const neu = allTokens.filter(t => t.sentiment?.label === '中性').length;
-                const neg = allTokens.filter(t => t.sentiment?.label === '消极').length;
-                
-                const pieChart = echarts.init(document.getElementById('sentimentChart'));
-                pieChart.setOption({
-                    tooltip: { trigger: 'item' },
-                    series: [{
-                        type: 'pie',
-                        radius: ['40%', '70%'],
-                        data: [
-                            { name: '积极', value: pos },
-                            { name: '中性', value: neu },
-                            { name: '消极', value: neg }
-                        ],
-                        label: { color: '#9aa8b9' },
-                        color: ['#10b981', '#6b7280', '#ef4444']
-                    }]
-                });
-
-            } catch (error) {
-                console.error('加载失败:', error);
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;">加载失败</td></tr>';
+                tbody.innerHTML = html;
+                document.getElementById('update').innerText = new Date().toLocaleTimeString();
+            } catch (e) {
+                document.getElementById('table-body').innerHTML = '<tr><td colspan="6">加载失败</td></tr>';
             }
         }
 
-        // 搜索
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            const keyword = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('#tableBody tr');
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(keyword) ? '' : 'none';
-            });
-        });
-
-        // 排序
-        function sortByVolume() {
-            allTokens.sort((a, b) => (b.volume_24h || 0) - (a.volume_24h || 0));
-            loadData(); // 重新渲染
-        }
-
-        // 自动刷新
-        document.addEventListener('DOMContentLoaded', loadData);
-        setInterval(loadData, 30000);
+        loadData();
+        setInterval(loadData, 30000);  // 30秒刷新一次
     </script>
 </body>
 </html>
