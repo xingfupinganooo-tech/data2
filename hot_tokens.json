@@ -61,5 +61,14 @@
     "liquidity": 0,
     "tx_count": 0,
     "contract": "6LD6BZjwZn1JCvidWiifhFyoYH5HLxtHbVbSFgrspump"
+  },
+  {
+    "name": "THE MOB",
+    "symbol": "MOB",
+    "time": "未知",
+    "price": "N/A",
+    "liquidity": 0,
+    "tx_count": 0,
+    "contract": "pECxjknBwnC1Hsk1TMEUq6AWpRn9Y13GJJcd1nbpump"
   }
 ]
