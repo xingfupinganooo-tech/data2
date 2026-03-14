@@ -10,7 +10,7 @@ MORALIS_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjgzZDliN2JkLWM5
 WECHAT_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4-4895-9069-212f4698c3b6"
 # ==============================
 
-print("🔥 零限制基础版启动...")
+print("🔥 零限制基础版启动...", flush=True)
 pushed_tokens = set()
 
 def send_wechat(msg):
@@ -18,11 +18,11 @@ def send_wechat(msg):
         data = {"msgtype": "text", "text": {"content": msg}}
         r = requests.post(WECHAT_URL, json=data, timeout=5)
         if r.json().get('errcode') == 0:
-            print("✅ 推送成功")
+            print("✅ 推送成功", flush=True)
             return True
         return False
     except Exception as e:
-        print(f"❌ 推送失败: {e}")
+        print(f"❌ 推送失败: {e}", flush=True)
         return False
 
 def get_new_tokens():
@@ -31,10 +31,10 @@ def get_new_tokens():
     try:
         r = requests.get(url, headers=headers, timeout=10)
         tokens = r.json().get('result', [])
-        print(f"📊 获取到 {len(tokens)} 个新代币")
+        print(f"📊 获取到 {len(tokens)} 个新代币", flush=True)
         return tokens
     except Exception as e:
-        print(f"❌ 获取代币失败: {e}")
+        print(f"❌ 获取代币失败: {e}", flush=True)
         return []
 
 def get_dex_data(addr):
@@ -97,24 +97,24 @@ def process_token(token):
     
     send_wechat(msg)
     pushed_tokens.add(mint)
-    print(f"✅ 推送: {token.get('name')} - {minutes_ago}分钟前")
+    print(f"✅ 推送: {token.get('name')} - {minutes_ago}分钟前", flush=True)
     return True
 
 def main():
-    print("="*50)
-    print("🌱 零限制基础版（所有新代币都推送）")
-    print(f"📅 启动时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("="*50)
+    print("="*50, flush=True)
+    print("🌱 零限制基础版（所有新代币都推送）", flush=True)
+    print(f"📅 启动时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", flush=True)
+    print("="*50, flush=True)
     
     round_count = 0
     while True:
         try:
             round_count += 1
-            print(f"\\n🔄 第 {round_count} 轮检查 - {datetime.now().strftime('%H:%M:%S')}")
+            print(f"\\n🔄 第 {round_count} 轮检查 - {datetime.now().strftime('%H:%M:%S')}", flush=True)
             
             tokens = get_new_tokens()
             if not tokens:
-                print("⏳ 没有获取到代币")
+                print("⏳ 没有获取到代币", flush=True)
                 time.sleep(60)
                 continue
             
@@ -124,17 +124,17 @@ def main():
                     new_count += 1
                     time.sleep(2)
             
-            print(f"📊 本轮推送 {new_count} 个代币")
+            print(f"📊 本轮推送 {new_count} 个代币", flush=True)
             time.sleep(60)
             
         except KeyboardInterrupt:
-            print("\\n🛑 用户中断")
+            print("\\n🛑 用户中断", flush=True)
             break
         except Exception as e:
-            print(f"❌ 错误: {e}")
+            print(f"❌ 错误: {e}", flush=True)
             time.sleep(60)
 
 if __name__ == "__main__":
-    print("🔥🔥🔥 程序开始运行 🔥🔥🔥")
+    print("🔥🔥🔥 程序开始运行 🔥🔥🔥", flush=True)
     main()
-    print("✅ 程序正常结束")
+    print("✅ 程序正常结束", flush=True)
