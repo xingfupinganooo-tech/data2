@@ -7,9 +7,9 @@ import json
 from datetime import datetime
 
 # ========== 从环境变量读取配置 ==========
-A = os.getenv('A')  # 币安 API Key
-B = os.getenv('B')  # 币安 Secret Key
-C = os.getenv('C')  # 企业微信地址
+A = os.getenv('A')
+B = os.getenv('B')
+C = os.getenv('C')
 
 print("="*50, flush=True)
 print("🔍 Python 环境变量检查", flush=True)
@@ -43,8 +43,6 @@ def send_wechat_markdown(msg):
         if r.status_code == 200 and r.json().get('errcode') == 0:
             print("✅ 推送成功", flush=True)
             return True
-        else:
-            print(f"⚠️ 推送返回: {r.text}", flush=True)
         return False
     except Exception as e:
         print(f"❌ 推送失败: {e}", flush=True)
@@ -77,10 +75,6 @@ def get_binance_alpha_tokens():
         {"symbol": "ETH", "name": "Ethereum"},
         {"symbol": "BNB", "name": "BNB"},
         {"symbol": "SOL", "name": "Solana"},
-        {"symbol": "XRP", "name": "XRP"},
-        {"symbol": "DOGE", "name": "Dogecoin"},
-        {"symbol": "ADA", "name": "Cardano"},
-        {"symbol": "AVAX", "name": "Avalanche"},
     ]
     return alpha_tokens
 
@@ -119,10 +113,6 @@ def analyze_potential(details):
         score += 20
         reasons.append(f"涨跌幅 {details['price_change']:.1f}%")
     
-    if details['quote_volume'] > 100_000 and abs(details['price_change']) > 5:
-        score += 15
-        reasons.append("活跃度高")
-    
     return score >= 30, reasons
 
 def process_alpha_tokens():
@@ -133,7 +123,7 @@ def process_alpha_tokens():
         return
     
     new_count = 0
-    for token in tokens[:20]:  # 限制数量避免刷屏
+    for token in tokens[:10]:
         symbol = token.get('symbol')
         if not symbol or symbol in pushed_tokens:
             continue
@@ -151,11 +141,9 @@ def process_alpha_tokens():
         msg += f"💰 价格: ${details['price']:.8f}\\n"
         msg += f"📊 24h涨跌: {details['price_change']:.2f}%\\n"
         msg += f"📈 24h交易量: ${details['quote_volume']:,.0f}\\n"
-        msg += f"🔥 24h最高: ${details['high']:.8f}\\n"
-        msg += f"📉 24h最低: ${details['low']:.8f}\\n\\n"
         
         if reasons:
-            msg += f"✨ 潜力指标: {', '.join(reasons)}\\n\\n"
+            msg += f"\\n✨ 潜力指标: {', '.join(reasons)}\\n"
         
         send_wechat_markdown(msg)
         pushed_tokens.add(symbol)
@@ -178,7 +166,7 @@ def main():
             print(f"\\n🔄 第 {round_count} 轮检查 - {datetime.now().strftime('%H:%M:%S')}", flush=True)
             
             process_alpha_tokens()
-            time.sleep(60 * 5)  # 每5分钟检查一次
+            time.sleep(60 * 5)
             
         except KeyboardInterrupt:
             print("\\n🛑 用户中断", flush=True)
