@@ -143,7 +143,7 @@ def main():
             process_alpha_tokens()
             
             print(f"\\n✅ 第 {round_count} 轮执行完成", flush=True)
-            print(f"⏰ 等待5分钟后进入第 {round_count+1} 轮...", flush=True)
+            print(f"⏰ 等待1分钟后进入第 {round_count+1} 轮...", flush=True)
             time.sleep(60)
             
         except KeyboardInterrupt:
