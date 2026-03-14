@@ -6,11 +6,10 @@ import random
 from datetime import datetime
 
 # ========== 配置区域 ==========
-MORALIS_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjgzZDliN2JkLWM5YjQtNDJkYS1iMTU0LTVjMDhlOGM2YjVjZiIsIm9yZ0lkIjoiNTA0OTk2IiwidXNlcklkIjoiNTE5NjE1IiwidHlwZUlkIjoiMDMxNmRjMWUtNzhkMC00YTYwLWE4ZTEtYTQxZGQ5MzlkMjk2IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3NzMzMTQ3NDYsImV4cCI6NDkyOTA3NDc0Nn0.0AWDAjP-uHoZtnX-NAWhoMA9ZJCRipdBKuBkTdlH2bw"
 WECHAT_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4-4895-9069-212f4698c3b6"
 # ==============================
 
-print("🔥 零限制基础版启动...", flush=True)
+print("🔥 Solscan 版启动...", flush=True)
 pushed_tokens = set()
 
 def send_wechat(msg):
@@ -26,21 +25,48 @@ def send_wechat(msg):
         return False
 
 def get_new_tokens():
-    url = "https://solana-gateway.moralis.io/token/mainnet/exchange/pumpfun/new?limit=50"
-    headers = {"accept": "application/json", "X-API-Key": MORALIS_KEY}
+    """使用 Solscan 公开 API 获取最新代币（无需密钥）"""
+    url = "https://api.solscan.io/token/list"
+    params = {
+        "sortBy": "createdTime",  # 按创建时间排序
+        "direction": "desc",       # 倒序，最新的在前
+        "limit": 50                 # 获取 50 个
+    }
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json"
+    }
     try:
-        r = requests.get(url, headers=headers, timeout=10)
+        print(f"🔍 请求 Solscan API...", flush=True)
+        r = requests.get(url, params=params, headers=headers, timeout=10)
         print(f"🔍 API 返回状态码: {r.status_code}", flush=True)
-        print(f"📦 API 返回数据: {r.text[:200]}", flush=True)
-        data = r.json()
-        tokens = data.get('result', [])
-        print(f"📊 获取到 {len(tokens)} 个新代币", flush=True)
-        return tokens
+        
+        if r.status_code == 200:
+            data = r.json()
+            tokens = data.get('data', [])
+            print(f"📊 获取到 {len(tokens)} 个新代币", flush=True)
+            
+            # 转换成我们需要的格式
+            formatted_tokens = []
+            for token in tokens:
+                formatted_tokens.append({
+                    'name': token.get('name', '未知'),
+                    'symbol': token.get('symbol', '未知'),
+                    'tokenAddress': token.get('address'),
+                    'created_timestamp': token.get('createdTime', 0),
+                    'twitter': token.get('twitter', ''),
+                    'website': token.get('website', '')
+                })
+            return formatted_tokens
+        else:
+            print(f"❌ API 返回错误: {r.text}", flush=True)
+            return []
     except Exception as e:
         print(f"❌ 获取代币失败: {e}", flush=True)
         return []
 
 def get_dex_data(addr):
+    """从 DexScreener 获取交易数据（也免费）"""
     try:
         r = requests.get(f"https://api.dexscreener.com/latest/dex/token/{addr}", timeout=5)
         data = r.json()
@@ -67,7 +93,7 @@ def process_token(token):
     
     dex = get_dex_data(mint)
     
-    # 模拟数据
+    # 模拟数据（Solscan 没有这些，保持模拟）
     holders = random.randint(100, 500)
     rug_prob = random.randint(20, 80)
     rug_history = "无" if rug_prob < 50 else "有可疑记录" if rug_prob < 80 else "高风险项目"
@@ -76,6 +102,7 @@ def process_token(token):
     dev_sol = random.uniform(3, 20)
     dev_usd = dev_sol * 86.7
     
+    # 构建消息
     msg = f"💊💊💊 新代币 💊💊💊\\n\\n"
     msg += f"{token.get('name', '未知')} ({token.get('symbol', '未知')})\\n\\n"
     msg += f"🎲 CA:\\n{mint}\\n\\n"
@@ -92,9 +119,14 @@ def process_token(token):
     msg += f"  - Balance SOL: {'⚠️' if dev_sol < 10 else '✅'} {dev_sol:.2f} SOL\\n"
     msg += f"  - Balance USD: ${dev_usd:.2f}\\n\\n"
     
-    links = ["🐦 Twitter", "🌏 website", "💊 Pump"]
+    links = []
+    if token.get('twitter'):
+        links.append("🐦 Twitter")
+    if token.get('website'):
+        links.append("🌏 website")
+    links.append("💊 Pump")
     msg += " | ".join(links) + "\\n\\n"
-    msg += "⚡️ TIP: 零限制版 | 所有新币都推送"
+    msg += "⚡️ TIP: Solscan 版 | 无需 API Key"
     
     send_wechat(msg)
     pushed_tokens.add(mint)
@@ -103,7 +135,7 @@ def process_token(token):
 
 def main():
     print("="*50, flush=True)
-    print("🌱 零限制基础版（所有新代币都推送）", flush=True)
+    print("🌱 Solscan 版（无需 API Key）", flush=True)
     print(f"📅 启动时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", flush=True)
     print("="*50, flush=True)
     
