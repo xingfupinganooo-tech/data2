@@ -1,19 +1,20 @@
-name: Test Env
+name: Token Monitor
 
 on:
   workflow_dispatch:
 
 jobs:
-  test:
+  monitor:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - name: Run test
+      - run: pip install requests
+      - name: Run monitor
         env:
           A: ${{ secrets.A }}
           B: ${{ secrets.B }}
           C: ${{ secrets.C }}
-        run: python test.py
+        run: python monitor.py
