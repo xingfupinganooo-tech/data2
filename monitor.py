@@ -8,9 +8,9 @@ import hashlib
 from datetime import datetime
 
 # ========== 从环境变量读取配置 ==========
-BINANCE_API_KEY = os.getenv('BINANCE_API_KEY')
-BINANCE_SECRET_KEY = os.getenv('BINANCE_SECRET_KEY')
-WECHAT_URL = os.getenv('WECHAT_URL')
+BINANCE_API_KEY = os.getenv('BINANCE_API_KEY')print(f"🔍 调试: BINANCE_API_KEY 是否存在: {'BINANCE_API_KEY' in os.environ}")
+BINANCE_SECRET_KEY = os.getenv('BINANCE_SECRET_KEY')print(f"🔍 调试: BINANCE_SECRET_KEY 是否存在: {'BINANCE_SECRET_KEY' in os.environ}")
+WECHAT_URL = os.getenv('WECHAT_URL')print(f"🔍 调试: WECHAT_URL 是否存在: {'WECHAT_URL' in os.environ}")
 
 if not all([BINANCE_API_KEY, BINANCE_SECRET_KEY, WECHAT_URL]):
     print("❌ 请设置环境变量: BINANCE_API_KEY, BINANCE_SECRET_KEY, WECHAT_URL", flush=True)
