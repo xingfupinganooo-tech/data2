@@ -1,19 +1,19 @@
-name: Token Monitor
+name: Test Env
 
 on:
   workflow_dispatch:
 
 jobs:
-  monitor:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-      - run: pip install requests
-      - run: python monitor.py
+      - name: Run test
         env:
           A: ${{ secrets.A }}
           B: ${{ secrets.B }}
-          C: https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4-4895-9069-212f4698c3b6
+          C: ${{ secrets.C }}
+        run: python test.py
