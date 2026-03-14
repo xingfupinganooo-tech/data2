@@ -24,7 +24,7 @@ def send_wechat(msg):
     except Exception as e:
         print(f"❌ 推送失败: {e}", flush=True)
         return False
-
+print(f"API 原始返回: {r.text[:200]}", flush=True)
 def get_new_tokens():
     url = "https://solana-gateway.moralis.io/token/mainnet/exchange/pumpfun/new?limit=50"
     headers = {"accept": "application/json", "X-API-Key": MORALIS_KEY}
@@ -32,6 +32,7 @@ def get_new_tokens():
         r = requests.get(url, headers=headers, timeout=10)
         tokens = r.json().get('result', [])
         print(f"📊 获取到 {len(tokens)} 个新代币", flush=True)
+        
         return tokens
     except Exception as e:
         print(f"❌ 获取代币失败: {e}", flush=True)
