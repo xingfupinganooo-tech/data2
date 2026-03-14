@@ -11,7 +11,7 @@ WECHAT_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4
 
 # ========== 专业推送参数 ==========
 DEVIATION_THRESHOLD = 3.0  # 偏差阈值：价格/交易量变化超过3%才推送
-HEARTBEAT_INTERVAL = 6      # 心跳间隔：最久6小时推一次（小时）
+HEARTBEAT_INTERVAL = 1      # 心跳间隔：最久6小时推一次（小时）
 HISTORY_SIZE = 10            # 保存最近10次数据用于计算偏差
 # ================================
 
