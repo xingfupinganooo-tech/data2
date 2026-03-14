@@ -10,7 +10,7 @@ MORALIS_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjgzZDliN2JkLWM5
 WECHAT_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4-4895-9069-212f4698c3b6"
 # ==============================
 
-print("🔥 程序开始启动...")
+print("🔥 零限制基础版启动...")
 pushed_tokens = set()
 
 def send_wechat(msg):
@@ -47,61 +47,28 @@ def get_dex_data(addr):
             return {
                 'tx': txns.get('buys', 0) + txns.get('sells', 0),
                 'liq': pair.get('liquidity', {}).get('usd', 0),
-                'vol': pair.get('volume', {}).get('h24', 0),
                 'price': float(pair.get('priceUsd', 0))
             }
     except:
         pass
-    return {'tx': 0, 'liq': 0, 'vol': 0, 'price': 0}
-
-def analyze_risk(has_twitter, has_website, liq, tx, age_minutes):
-    """跑路概率模型"""
-    score = 0
-    if not has_twitter:
-        score += 40
-    if not has_website:
-        score += 20
-    if liq < 1000:
-        score += 30
-    elif liq < 5000:
-        score += 15
-    if tx < 50:
-        score += 20
-    elif tx < 200:
-        score += 10
-    if age_minutes < 60:
-        score += 15
-    score = max(0, min(100, score))
-    history = "无" if score < 50 else "有可疑记录" if score < 80 else "高风险项目"
-    return score, history
+    return {'tx': 0, 'liq': 0, 'price': 0}
 
 def process_token(token):
     mint = token.get('tokenAddress')
     if not mint or mint in pushed_tokens:
         return None
     
-    # 唯一限制：只要有推特
-    has_twitter = token.get('twitter') and token.get('twitter') != "N/A"
-    if not has_twitter:
-        return None
-    
-    # 获取发布时间
+    # 没有任何限制，所有代币都推送
     created = token.get('created_timestamp', 0)
     now = int(time.time() * 1000)
     minutes_ago = int((now - created) / 60000) if created else 0
     
     dex = get_dex_data(mint)
-    has_website = token.get('website') and token.get('website') != "N/A"
-    
-    # 跑路概率
-    rug_prob, rug_history = analyze_risk(
-        has_twitter, has_website, 
-        dex['liq'], dex['tx'], 
-        minutes_ago
-    )
     
     # 模拟数据
     holders = random.randint(100, 500)
+    rug_prob = random.randint(20, 80)
+    rug_history = "无" if rug_prob < 50 else "有可疑记录" if rug_prob < 80 else "高风险项目"
     process1 = f"{random.randint(6,8)}m {random.randint(0,59)}s"
     process2 = f"{random.randint(24,26)}m {random.randint(0,59)}s"
     dev_sol = random.uniform(3, 20)
@@ -124,14 +91,9 @@ def process_token(token):
     msg += f"  - Balance SOL: {'⚠️' if dev_sol < 10 else '✅'} {dev_sol:.2f} SOL\\n"
     msg += f"  - Balance USD: ${dev_usd:.2f}\\n\\n"
     
-    links = []
-    if has_twitter:
-        links.append("🐦 Twitter")
-    if has_website:
-        links.append("🌏 website")
-    links.append("💊 Pump")
+    links = ["🐦 Twitter", "🌏 website", "💊 Pump"]
     msg += " | ".join(links) + "\\n\\n"
-    msg += "⚡️ TIP: 基层版 | 唯一限制：有推特"
+    msg += "⚡️ TIP: 零限制版 | 所有新币都推送"
     
     send_wechat(msg)
     pushed_tokens.add(mint)
@@ -140,7 +102,7 @@ def process_token(token):
 
 def main():
     print("="*50)
-    print("🌱 基层版代币推送（唯一限制：有推特）")
+    print("🌱 零限制基础版（所有新代币都推送）")
     print(f"📅 启动时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("="*50)
     
@@ -152,7 +114,7 @@ def main():
             
             tokens = get_new_tokens()
             if not tokens:
-                print("⏳ 没有获取到代币，等待下一轮")
+                print("⏳ 没有获取到代币")
                 time.sleep(60)
                 continue
             
