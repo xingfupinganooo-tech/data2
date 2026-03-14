@@ -20,22 +20,6 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: 检查 secrets 是否传进来了
-        env:
-          A: ${{ secrets.A }}
-          B: ${{ secrets.B }}
-          C: ${{ secrets.C }}
-        run: |
-          echo "========================"
-          echo "🔍 Secrets 检查"
-          echo "A 长度: ${#A}"
-          echo "B 长度: ${#B}"
-          echo "C 长度: ${#C}"
-          if [ ${#A} -eq 0 ]; then echo "❌ A 是空的"; else echo "✅ A 有值"; fi
-          if [ ${#B} -eq 0 ]; then echo "❌ B 是空的"; else echo "✅ B 有值"; fi
-          if [ ${#C} -eq 0 ]; then echo "❌ C 是空的"; else echo "✅ C 有值"; fi
-          echo "========================"
-
       - name: Run monitor
         env:
           A: ${{ secrets.A }}
