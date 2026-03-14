@@ -12,9 +12,13 @@ WECHAT_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4
 print("🔥 DexScreener 版启动...", flush=True)
 pushed_tokens = set()
 
-def send_wechat(msg):
+def send_wechat(msg, is_markdown=False):
+    """发送企业微信消息，支持普通文本和markdown"""
     try:
-        data = {"msgtype": "text", "text": {"content": msg}}
+        if is_markdown:
+            data = {"msgtype": "markdown", "markdown": {"content": msg}}
+        else:
+            data = {"msgtype": "text", "text": {"content": msg}}
         r = requests.post(WECHAT_URL, json=data, timeout=5)
         if r.json().get('errcode') == 0:
             print("✅ 推送成功", flush=True)
@@ -25,44 +29,37 @@ def send_wechat(msg):
         return False
 
 def get_new_tokens():
-    """从 DexScreener 获取 Solana 最新代币（完全免费，无需密钥）"""
+    """从 DexScreener 获取 Solana 最新代币"""
     url = "https://api.dexscreener.com/latest/dex/search"
     params = {"q": "solana"}
     
     try:
         print(f"🔍 请求 DexScreener API...", flush=True)
         r = requests.get(url, params=params, timeout=10)
-        print(f"🔍 API 返回状态码: {r.status_code}", flush=True)
         
         if r.status_code == 200:
             data = r.json()
             pairs = data.get('pairs', [])
             print(f"📊 获取到 {len(pairs)} 个交易对", flush=True)
             
-            # 去重，避免同一个代币出现多次
             seen = set()
             tokens = []
             for pair in pairs[:50]:
                 addr = pair.get('baseToken', {}).get('address')
                 if addr and addr not in seen:
                     seen.add(addr)
-                    
-                    # 获取创建时间（可能有，可能没有）
                     created = pair.get('pairCreatedAt', 0)
-                    
                     tokens.append({
                         'name': pair.get('baseToken', {}).get('name', '未知'),
                         'symbol': pair.get('baseToken', {}).get('symbol', '未知'),
                         'tokenAddress': addr,
                         'created_timestamp': created,
-                        'twitter': '',  # DexScreener 没有推特信息
+                        'twitter': '',
                         'website': ''
                     })
-            
             print(f"✅ 去重后获得 {len(tokens)} 个唯一代币", flush=True)
             return tokens
         else:
-            print(f"❌ API 返回错误: {r.status_code}", flush=True)
             return []
     except Exception as e:
         print(f"❌ 获取代币失败: {e}", flush=True)
@@ -97,7 +94,7 @@ def process_token(token):
     
     dex = get_dex_data(mint)
     
-    # 模拟数据（这些数据 DexScreener 没有，所以用随机模拟）
+    # 模拟数据
     holders = random.randint(100, 500)
     rug_prob = random.randint(20, 80)
     rug_history = "无" if rug_prob < 50 else "有可疑记录" if rug_prob < 80 else "高风险项目"
@@ -106,35 +103,44 @@ def process_token(token):
     dev_sol = random.uniform(3, 20)
     dev_usd = dev_sol * 86.7
     
-    # 构建消息
-    msg = f"💊💊💊 新代币 💊💊💊\\n\\n"
-    msg += f"{token.get('name', '未知')} ({token.get('symbol', '未知')})\\n\\n"
-    msg += f"🎲 CA:\\n{mint}\\n\\n"
-    msg += f"⏰ 发布时间: {minutes_ago}分钟前\\n"
-    msg += f"👥 Holder持有人: {holders}\\n"
-    msg += f"📕 Rug Probability跑路概率: {rug_prob}%\\n"
-    msg += f"📒 Rug History跑路历史: {rug_history}\\n\\n"
-    msg += f"💰 价格: ${dex['price']:.8f}\\n"
-    msg += f"📊 24h交易: {dex['tx']}笔\\n"
-    msg += f"💧 流动性: ${dex['liq']:,.0f}\\n\\n"
-    msg += f"👑1/2 Process: {process1}\\n"
-    msg += f"🚀2/2 Process: {process2}\\n\\n"
-    msg += f"👨🏻‍💻 Dev Wallet:\\n"
-    msg += f"  - Balance SOL: {'⚠️' if dev_sol < 10 else '✅'} {dev_sol:.2f} SOL\\n"
-    msg += f"  - Balance USD: ${dev_usd:.2f}\\n\\n"
+    # ========== 第一条消息：代币信息（蓝色标题）==========
+    title_msg = f"<font color=\"blue\">💊 {token.get('name')} ({token.get('symbol')})</font>\\n\\n"
+    title_msg += f"⏰ 发布时间: {minutes_ago}分钟前\\n"
+    title_msg += f"👥 Holder持有人: {holders}\\n"
+    title_msg += f"📕 Rug Probability跑路概率: {rug_prob}%\\n"
+    title_msg += f"📒 Rug History跑路历史: {rug_history}\\n\\n"
+    title_msg += f"💰 价格: ${dex['price']:.8f}\\n"
+    title_msg += f"📊 24h交易: {dex['tx']}笔\\n"
+    title_msg += f"💧 流动性: ${dex['liq']:,.0f}\\n\\n"
+    title_msg += f"👑1/2 Process: {process1}\\n"
+    title_msg += f"🚀2/2 Process: {process2}\\n\\n"
+    title_msg += f"👨🏻‍💻 Dev Wallet:\\n"
+    title_msg += f"  - Balance SOL: {'⚠️' if dev_sol < 10 else '✅'} {dev_sol:.2f} SOL\\n"
+    title_msg += f"  - Balance USD: ${dev_usd:.2f}\\n\\n"
     
-    links = ["🐦 Twitter", "🌏 website", "💊 Pump"]
-    msg += " | ".join(links) + "\\n\\n"
-    msg += "⚡️ TIP: DexScreener 版 | 无需 API Key"
+    links = []
+    if token.get('twitter'):
+        links.append("🐦 Twitter")
+    if token.get('website'):
+        links.append("🌏 website")
+    links.append("💊 Pump")
+    title_msg += " | ".join(links)
     
-    send_wechat(msg)
+    # ========== 第二条消息：蓝色合约地址（单独发）==========
+    contract_msg = f"<font color=\"blue\">{mint}</font>"
+    
+    # 发送两条消息
+    send_wechat(title_msg, is_markdown=True)
+    time.sleep(1)
+    send_wechat(contract_msg, is_markdown=True)
+    
     pushed_tokens.add(mint)
     print(f"✅ 推送: {token.get('name')} - {minutes_ago}分钟前", flush=True)
     return True
 
 def main():
     print("="*50, flush=True)
-    print("🌱 DexScreener 版（无需 API Key）", flush=True)
+    print("🌱 DexScreener 版（蓝色高亮 + 合约单独）", flush=True)
     print(f"📅 启动时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", flush=True)
     print("="*50, flush=True)
     
