@@ -1,24 +1,29 @@
 # -*- coding: utf-8 -*-
+import os
 import requests
 import time
 import json
-import random
+import hmac
+import hashlib
 from datetime import datetime
 
-# ========== 配置区域 ==========
-WECHAT_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4-4895-9069-212f4698c3b6"
-# ==============================
+# ========== 从环境变量读取配置 ==========
+BINANCE_API_KEY = os.getenv('BINANCE_API_KEY')
+BINANCE_SECRET_KEY = os.getenv('BINANCE_SECRET_KEY')
+WECHAT_URL = os.getenv('WECHAT_URL')
 
-print("🔥 DexScreener 版启动...", flush=True)
+if not all([BINANCE_API_KEY, BINANCE_SECRET_KEY, WECHAT_URL]):
+    print("❌ 请设置环境变量: BINANCE_API_KEY, BINANCE_SECRET_KEY, WECHAT_URL", flush=True)
+    exit(1)
+# ======================================
+
+print("🔥 币安Alpha监控启动...", flush=True)
 pushed_tokens = set()
 
-def send_wechat(msg, is_markdown=False):
-    """发送企业微信消息，支持普通文本和markdown"""
+def send_wechat_markdown(msg):
+    """发送企业微信Markdown消息"""
     try:
-        if is_markdown:
-            data = {"msgtype": "markdown", "markdown": {"content": msg}}
-        else:
-            data = {"msgtype": "text", "text": {"content": msg}}
+        data = {"msgtype": "markdown", "markdown": {"content": msg}}
         r = requests.post(WECHAT_URL, json=data, timeout=5)
         if r.json().get('errcode') == 0:
             print("✅ 推送成功", flush=True)
@@ -28,119 +33,145 @@ def send_wechat(msg, is_markdown=False):
         print(f"❌ 推送失败: {e}", flush=True)
         return False
 
-def get_new_tokens():
-    """从 DexScreener 获取 Solana 最新代币"""
-    url = "https://api.dexscreener.com/latest/dex/search"
-    params = {"q": "solana"}
-    
+def get_binance_alpha_tokens():
+    """获取币安Alpha板块所有代币"""
+    # 方法1：通过币安API获取Alpha代币列表
     try:
-        print(f"🔍 请求 DexScreener API...", flush=True)
-        r = requests.get(url, params=params, timeout=10)
-        
+        # 获取交易所信息，从中筛选Alpha代币
+        url = "https://api.binance.com/api/v3/exchangeInfo"
+        r = requests.get(url, timeout=10)
         if r.status_code == 200:
             data = r.json()
-            pairs = data.get('pairs', [])
-            print(f"📊 获取到 {len(pairs)} 个交易对", flush=True)
+            symbols = data.get('symbols', [])
             
-            seen = set()
-            tokens = []
-            for pair in pairs[:50]:
-                addr = pair.get('baseToken', {}).get('address')
-                if addr and addr not in seen:
-                    seen.add(addr)
-                    created = pair.get('pairCreatedAt', 0)
-                    tokens.append({
-                        'name': pair.get('baseToken', {}).get('name', '未知'),
-                        'symbol': pair.get('baseToken', {}).get('symbol', '未知'),
-                        'tokenAddress': addr,
-                        'created_timestamp': created,
-                        'twitter': '',
-                        'website': ''
+            # 筛选USDT交易对，且可能是Alpha的代币（这里需要根据实际规则判断）
+            alpha_tokens = []
+            for s in symbols:
+                if s.get('quoteAsset') == 'USDT' and s.get('status') == 'TRADING':
+                    # 这里可以根据实际Alpha规则进一步筛选
+                    alpha_tokens.append({
+                        'symbol': s.get('baseAsset'),
+                        'name': s.get('baseAsset'),  # 币安exchangeInfo没有name字段
+                        'contract': '',  # 币安API不提供合约地址
+                        'quote_asset': 'USDT'
                     })
-            print(f"✅ 去重后获得 {len(tokens)} 个唯一代币", flush=True)
-            return tokens
-        else:
-            return []
+            
+            print(f"📊 获取到 {len(alpha_tokens)} 个交易对", flush=True)
+            return alpha_tokens
     except Exception as e:
-        print(f"❌ 获取代币失败: {e}", flush=True)
-        return []
+        print(f"⚠️ 币安API失败: {e}", flush=True)
+    
+    # 方法2：备用方案 - 手动维护的Alpha代币列表
+    # 根据币安Alpha最近上线的代币（需要定期从公告更新）
+    alpha_tokens = [
+        {"symbol": "B2", "name": "B2 Network", "contract": "0x0000000000000000000000000000000000000000"},
+        {"symbol": "AIOT", "name": "AIOT", "contract": "0x0000000000000000000000000000000000000000"},
+        {"symbol": "NIGHT", "name": "NIGHT", "contract": "0x0000000000000000000000000000000000000000"},
+        {"symbol": "VINE", "name": "VINE", "contract": "0x0000000000000000000000000000000000000000"},
+        {"symbol": "ALPHA", "name": "ALPHA", "contract": "0x0000000000000000000000000000000000000000"},
+        {"symbol": "KAT", "name": "Katana", "contract": "0x0000000000000000000000000000000000000000"},
+        {"symbol": "CAI", "name": "CharacterX", "contract": "0x0000000000000000000000000000000000000000"},
+        {"symbol": "BIRB", "name": "Moonbirds", "contract": "0x0000000000000000000000000000000000000000"},
+    ]
+    return alpha_tokens
 
-def get_dex_data(addr):
-    """从 DexScreener 获取单个代币的详细数据"""
+def get_token_details(symbol):
+    """通过币安API获取代币详细信息"""
     try:
-        r = requests.get(f"https://api.dexscreener.com/latest/dex/token/{addr}", timeout=5)
+        # 获取24小时行情
+        url = "https://api.binance.com/api/v3/ticker/24hr"
+        params = {"symbol": f"{symbol}USDT"}
+        r = requests.get(url, params=params, timeout=5)
         if r.status_code == 200:
             data = r.json()
-            if data.get('pairs'):
-                pair = data['pairs'][0]
-                txns = pair.get('txns', {}).get('h24', {})
-                return {
-                    'tx': txns.get('buys', 0) + txns.get('sells', 0),
-                    'liq': pair.get('liquidity', {}).get('usd', 0),
-                    'price': float(pair.get('priceUsd', 0))
-                }
-    except:
-        pass
-    return {'tx': 0, 'liq': 0, 'price': 0}
+            return {
+                'price': float(data.get('lastPrice', 0)),
+                'volume': float(data.get('volume', 0)),
+                'quote_volume': float(data.get('quoteVolume', 0)),
+                'price_change': float(data.get('priceChangePercent', 0)),
+                'high': float(data.get('highPrice', 0)),
+                'low': float(data.get('lowPrice', 0))
+            }
+    except Exception as e:
+        print(f"⚠️ 获取 {symbol} 详情失败: {e}", flush=True)
+    return None
 
-def process_token(token):
-    mint = token.get('tokenAddress')
-    if not mint or mint in pushed_tokens:
-        return None
+def analyze_potential(details):
+    """分析代币潜力"""
+    if not details:
+        return False, []
     
-    created = token.get('created_timestamp', 0)
-    now = int(time.time() * 1000)
-    minutes_ago = int((now - created) / 60000) if created else 0
+    reasons = []
+    score = 0
     
-    dex = get_dex_data(mint)
+    # 交易量 > $1M
+    if details['quote_volume'] > 1_000_000:
+        score += 30
+        reasons.append(f"交易量 ${details['quote_volume']/1e6:.1f}M")
     
-    # 模拟数据
-    holders = random.randint(100, 500)
-    rug_prob = random.randint(20, 80)
-    rug_history = "无" if rug_prob < 50 else "有可疑记录" if rug_prob < 80 else "高风险项目"
-    process1 = f"{random.randint(6,8)}m {random.randint(0,59)}s"
-    process2 = f"{random.randint(24,26)}m {random.randint(0,59)}s"
-    dev_sol = random.uniform(3, 20)
-    dev_usd = dev_sol * 86.7
+    # 价格波动 > 10%
+    if abs(details['price_change']) > 10:
+        score += 20
+        reasons.append(f"涨跌幅 {details['price_change']:.1f}%")
     
-    # ========== 第一条消息：代币信息（蓝色标题）==========
-    title_msg = f"<font color=\"blue\">💊 {token.get('name')} ({token.get('symbol')})</font>\\n\\n"
-    title_msg += f"⏰ 发布时间: {minutes_ago}分钟前\\n"
-    title_msg += f"👥 Holder持有人: {holders}\\n"
-    title_msg += f"📕 Rug Probability跑路概率: {rug_prob}%\\n"
-    title_msg += f"📒 Rug History跑路历史: {rug_history}\\n\\n"
-    title_msg += f"💰 价格: ${dex['price']:.8f}\\n"
-    title_msg += f"📊 24h交易: {dex['tx']}笔\\n"
-    title_msg += f"💧 流动性: ${dex['liq']:,.0f}\\n\\n"
-    title_msg += f"👑1/2 Process: {process1}\\n"
-    title_msg += f"🚀2/2 Process: {process2}\\n\\n"
-    title_msg += f"👨🏻‍💻 Dev Wallet:\\n"
-    title_msg += f"  - Balance SOL: {'⚠️' if dev_sol < 10 else '✅'} {dev_sol:.2f} SOL\\n"
-    title_msg += f"  - Balance USD: ${dev_usd:.2f}\\n\\n"
+    # 交易量 > $100K 且涨跌 > 5%
+    if details['quote_volume'] > 100_000 and abs(details['price_change']) > 5:
+        score += 15
+        reasons.append("活跃度高")
     
-    links = []
-    if token.get('twitter'):
-        links.append("🐦 Twitter")
-    if token.get('website'):
-        links.append("🌏 website")
-    links.append("💊 Pump")
-    title_msg += " | ".join(links)
+    return score >= 30, reasons
+
+def process_alpha_tokens():
+    """处理所有Alpha代币，筛选有潜力的推送"""
+    tokens = get_binance_alpha_tokens()
+    if not tokens:
+        print("⏳ 没有获取到Alpha代币", flush=True)
+        return
     
-    # ========== 第二条消息：蓝色合约地址（单独发）==========
-    contract_msg = f"<font color=\"blue\">{mint}</font>"
+    new_count = 0
+    for token in tokens:
+        symbol = token.get('symbol')
+        if not symbol or symbol in pushed_tokens:
+            continue
+        
+        # 获取详细行情
+        details = get_token_details(symbol)
+        if not details:
+            continue
+        
+        # 分析潜力
+        is_potential, reasons = analyze_potential(details)
+        if not is_potential:
+            continue
+        
+        # 构建Markdown消息
+        msg = f"<font color=\"blue\">💎 {token.get('name', symbol)} ({symbol})</font>\\n\\n"
+        msg += f"⏰ 时间: {datetime.now().strftime('%H:%M')}\\n\\n"
+        msg += f"💰 价格: ${details['price']:.8f}\\n"
+        msg += f"📊 24h涨跌: {details['price_change']:.2f}%\\n"
+        msg += f"📈 24h交易量: ${details['quote_volume']:,.0f}\\n"
+        msg += f"🔥 24h最高: ${details['high']:.8f}\\n"
+        msg += f"📉 24h最低: ${details['low']:.8f}\\n\\n"
+        
+        if reasons:
+            msg += f"✨ 潜力指标: {', '.join(reasons)}\\n\\n"
+        
+        # 合约地址（如果有的话）
+        contract = token.get('contract', '')
+        if contract and contract != '0x0000000000000000000000000000000000000000':
+            msg += f"🔗 合约:\\n<font color=\"blue\">{contract}</font>"
+        
+        send_wechat_markdown(msg)
+        pushed_tokens.add(symbol)
+        new_count += 1
+        print(f"✅ 推送: {symbol}", flush=True)
+        time.sleep(2)
     
-    # 发送两条消息
-    send_wechat(title_msg, is_markdown=True)
-    time.sleep(1)
-    send_wechat(contract_msg, is_markdown=True)
-    
-    pushed_tokens.add(mint)
-    print(f"✅ 推送: {token.get('name')} - {minutes_ago}分钟前", flush=True)
-    return True
+    print(f"📊 本轮推送 {new_count} 个潜力代币", flush=True)
 
 def main():
     print("="*50, flush=True)
-    print("🌱 DexScreener 版（蓝色高亮 + 合约单独）", flush=True)
+    print("🔥 币安Alpha潜力代币监控", flush=True)
     print(f"📅 启动时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", flush=True)
     print("="*50, flush=True)
     
@@ -150,20 +181,8 @@ def main():
             round_count += 1
             print(f"\\n🔄 第 {round_count} 轮检查 - {datetime.now().strftime('%H:%M:%S')}", flush=True)
             
-            tokens = get_new_tokens()
-            if not tokens:
-                print("⏳ 没有获取到代币", flush=True)
-                time.sleep(60)
-                continue
-            
-            new_count = 0
-            for token in tokens:
-                if process_token(token):
-                    new_count += 1
-                    time.sleep(2)
-            
-            print(f"📊 本轮推送 {new_count} 个代币", flush=True)
-            time.sleep(60)
+            process_alpha_tokens()
+            time.sleep(60 * 5)  # 每5分钟检查一次
             
         except KeyboardInterrupt:
             print("\\n🛑 用户中断", flush=True)
