@@ -24,7 +24,10 @@ jobs:
         env:
           MORALIS_KEY: ${{ secrets.MORALIS_KEY }}
           WECHAT_URL: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4-4895-9069-212f4698c3b6"
-        run: python monitor.py
+        run: |
+          echo "开始运行..."
+          python monitor.py
+          echo "运行结束"
 
       - name: Commit and push if changed
         run: |
