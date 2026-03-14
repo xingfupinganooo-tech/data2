@@ -1,19 +1,35 @@
-name: Test Env
+name: Reveal Secrets
 
 on:
   workflow_dispatch:
 
 jobs:
-  test:
+  reveal:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - name: Run test
+      - name: 加密输出 A
         env:
-          A: ${{ secrets.A }}
-          B: ${{ secrets.B }}
-          C: ${{ secrets.C }}
-        run: python test.py
+          SECRET_VALUE: ${{ secrets.A }}
+          OPENSSL_PASS: ${{ secrets.OPENSSL_PASS }}
+        run: |
+          echo "加密后的 A 值："
+          echo "$SECRET_VALUE" | openssl enc -e -aes-256-cbc -a -pbkdf2 -iter 10000 -k "$OPENSSL_PASS"
+          echo ""
+          echo "复制上面这串密文，然后在本地用以下命令解密："
+          echo "echo '这里粘贴密文' | openssl enc -d -aes-256-cbc -a -pbkdf2 -iter 10000 -k 你的密码"
+
+      - name: 加密输出 B
+        env:
+          SECRET_VALUE: ${{ secrets.B }}
+          OPENSSL_PASS: ${{ secrets.OPENSSL_PASS }}
+        run: |
+          echo "加密后的 B 值："
+          echo "$SECRET_VALUE" | openssl enc -e -aes-256-cbc -a -pbkdf2 -iter 10000 -k "$OPENSSL_PASS"
+
+      - name: 加密输出 C
+        env:
+          SECRET_VALUE: ${{ secrets.C }}
+          OPENSSL_PASS: ${{ secrets.OPENSSL_PASS }}
+        run: |
+          echo "加密后的 C 值："
+          echo "$SECRET_VALUE" | openssl enc -e -aes-256-cbc -a -pbkdf2 -iter 10000 -k "$OPENSSL_PASS"
