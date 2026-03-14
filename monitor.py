@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+print("🔥🔥🔥 程序开始运行 🔥🔥🔥")
+print("正在导入模块...")
 import requests
 import time
 import json
@@ -331,11 +333,14 @@ def main():
             time.sleep(60)
             
         except KeyboardInterrupt:
-            print("\\n🛑 停止")
+            print("\\n🛑 用户中断")
             break
+            
         except Exception as e:
             print(f"❌ 错误: {e}")
             time.sleep(60)
 
 if __name__ == "__main__":
+    print("🔥🔥🔥 程序启动 🔥🔥🔥")
     main()
+    print("✅ 程序正常结束")")
