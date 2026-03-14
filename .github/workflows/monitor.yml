@@ -40,5 +40,5 @@ jobs:
         env:
           A: ${{ secrets.A }}
           B: ${{ secrets.B }}
-          C: ${{ secrets.C }}
+          C: https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4-4895-9069-212f4698c3b6
         run: python monitor.py
