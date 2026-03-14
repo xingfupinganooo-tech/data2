@@ -144,7 +144,7 @@ def main():
             
             print(f"\\n✅ 第 {round_count} 轮执行完成", flush=True)
             print(f"⏰ 等待5分钟后进入第 {round_count+1} 轮...", flush=True)
-            time.sleep(60 * 5)
+            time.sleep(60)
             
         except KeyboardInterrupt:
             print("\\n🛑 用户中断，程序停止", flush=True)
