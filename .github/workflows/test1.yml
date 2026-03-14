@@ -1,4 +1,4 @@
-name: Token Monitor
+name: Test1 Monitor
 
 on:
   schedule:
@@ -19,4 +19,4 @@ jobs:
           A: ${{ secrets.A }}
           B: ${{ secrets.B }}
           C: ${{ secrets.C }}
-        run: python monitor.py
+        run: python test1.py
