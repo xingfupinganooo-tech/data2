@@ -9,7 +9,7 @@ from datetime import datetime
 WECHAT_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4-4895-9069-212f4698c3b6"
 # ==============================
 
-print("🔥 Solscan 版启动...", flush=True)
+print("🔥 DexScreener 版启动...", flush=True)
 pushed_tokens = set()
 
 def send_wechat(msg):
@@ -25,80 +25,51 @@ def send_wechat(msg):
         return False
 
 def get_new_tokens():
-    """Solscan 公开 API - 获取最新代币"""
-    url = "https://api.solscan.io/token/list"
-    params = {
-        "sort_by": "created_time",
-        "sort_order": "desc",
-        "limit": 50
-    }
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "application/json",
-        "Referer": "https://solscan.io/"
-    }
+    """从 DexScreener 获取 Solana 最新代币（完全免费，无需密钥）"""
+    url = "https://api.dexscreener.com/latest/dex/search"
+    params = {"q": "solana"}
+    
     try:
-        print(f"🔍 请求 Solscan API: {url}", flush=True)
-        r = requests.get(url, params=params, headers=headers, timeout=10)
+        print(f"🔍 请求 DexScreener API...", flush=True)
+        r = requests.get(url, params=params, timeout=10)
         print(f"🔍 API 返回状态码: {r.status_code}", flush=True)
         
         if r.status_code == 200:
             data = r.json()
-            print(f"📦 API 返回数据结构: {type(data)}", flush=True)
+            pairs = data.get('pairs', [])
+            print(f"📊 获取到 {len(pairs)} 个交易对", flush=True)
             
-            # Solscan 返回的数据可能有多种格式，尝试不同路径
+            # 去重，避免同一个代币出现多次
+            seen = set()
             tokens = []
-            if isinstance(data, dict):
-                if 'data' in data:
-                    tokens = data['data']
-                elif 'result' in data:
-                    tokens = data['result']
-                elif 'tokens' in data:
-                    tokens = data['tokens']
-                elif 'list' in data:
-                    tokens = data['list']
+            for pair in pairs[:50]:
+                addr = pair.get('baseToken', {}).get('address')
+                if addr and addr not in seen:
+                    seen.add(addr)
+                    
+                    # 获取创建时间（可能有，可能没有）
+                    created = pair.get('pairCreatedAt', 0)
+                    
+                    tokens.append({
+                        'name': pair.get('baseToken', {}).get('name', '未知'),
+                        'symbol': pair.get('baseToken', {}).get('symbol', '未知'),
+                        'tokenAddress': addr,
+                        'created_timestamp': created,
+                        'twitter': '',  # DexScreener 没有推特信息
+                        'website': ''
+                    })
             
-            print(f"📊 获取到 {len(tokens)} 个原始代币", flush=True)
-            
-            formatted_tokens = []
-            for token in tokens[:50]:
-                # 尝试不同的字段名
-                addr = (token.get('address') or 
-                       token.get('tokenAddress') or 
-                       token.get('token_addr') or 
-                       token.get('mint') or 
-                       token.get('id'))
-                
-                if not addr:
-                    continue
-                
-                # 获取创建时间
-                created = (token.get('createdTime') or 
-                          token.get('created_at') or 
-                          token.get('createTime') or 
-                          token.get('timestamp') or 0)
-                
-                formatted_tokens.append({
-                    'name': token.get('name', '未知'),
-                    'symbol': token.get('symbol', '未知'),
-                    'tokenAddress': addr,
-                    'created_timestamp': created,
-                    'twitter': token.get('twitter', ''),
-                    'website': token.get('website', '')
-                })
-            
-            print(f"✅ 格式化后获得 {len(formatted_tokens)} 个代币", flush=True)
-            return formatted_tokens
+            print(f"✅ 去重后获得 {len(tokens)} 个唯一代币", flush=True)
+            return tokens
         else:
             print(f"❌ API 返回错误: {r.status_code}", flush=True)
-            print(f"📄 错误内容: {r.text[:200]}", flush=True)
             return []
     except Exception as e:
         print(f"❌ 获取代币失败: {e}", flush=True)
         return []
 
 def get_dex_data(addr):
-    """从 DexScreener 获取交易数据"""
+    """从 DexScreener 获取单个代币的详细数据"""
     try:
         r = requests.get(f"https://api.dexscreener.com/latest/dex/token/{addr}", timeout=5)
         if r.status_code == 200:
@@ -126,7 +97,7 @@ def process_token(token):
     
     dex = get_dex_data(mint)
     
-    # 模拟数据
+    # 模拟数据（这些数据 DexScreener 没有，所以用随机模拟）
     holders = random.randint(100, 500)
     rug_prob = random.randint(20, 80)
     rug_history = "无" if rug_prob < 50 else "有可疑记录" if rug_prob < 80 else "高风险项目"
@@ -135,6 +106,7 @@ def process_token(token):
     dev_sol = random.uniform(3, 20)
     dev_usd = dev_sol * 86.7
     
+    # 构建消息
     msg = f"💊💊💊 新代币 💊💊💊\\n\\n"
     msg += f"{token.get('name', '未知')} ({token.get('symbol', '未知')})\\n\\n"
     msg += f"🎲 CA:\\n{mint}\\n\\n"
@@ -153,7 +125,7 @@ def process_token(token):
     
     links = ["🐦 Twitter", "🌏 website", "💊 Pump"]
     msg += " | ".join(links) + "\\n\\n"
-    msg += "⚡️ TIP: Solscan 实验版"
+    msg += "⚡️ TIP: DexScreener 版 | 无需 API Key"
     
     send_wechat(msg)
     pushed_tokens.add(mint)
@@ -162,7 +134,7 @@ def process_token(token):
 
 def main():
     print("="*50, flush=True)
-    print("🔬 Solscan 实验版（正在调试）", flush=True)
+    print("🌱 DexScreener 版（无需 API Key）", flush=True)
     print(f"📅 启动时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", flush=True)
     print("="*50, flush=True)
     
