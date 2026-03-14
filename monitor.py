@@ -24,14 +24,16 @@ def send_wechat(msg):
     except Exception as e:
         print(f"❌ 推送失败: {e}", flush=True)
         return False
-print(f"API 原始返回: {r.text[:200]}", flush=True)
+
 def get_new_tokens():
     url = "https://solana-gateway.moralis.io/token/mainnet/exchange/pumpfun/new?limit=50"
     headers = {"accept": "application/json", "X-API-Key": MORALIS_KEY}
     try:
         r = requests.get(url, headers=headers, timeout=10)
-        print(f"API 原始返回: {r.text[:200]}", flush=True)  # 放在这里
-        tokens = r.json().get('result', [])
+        print(f"🔍 API 返回状态码: {r.status_code}", flush=True)
+        print(f"📦 API 返回数据: {r.text[:200]}", flush=True)
+        data = r.json()
+        tokens = data.get('result', [])
         print(f"📊 获取到 {len(tokens)} 个新代币", flush=True)
         return tokens
     except Exception as e:
@@ -59,7 +61,6 @@ def process_token(token):
     if not mint or mint in pushed_tokens:
         return None
     
-    # 没有任何限制，所有代币都推送
     created = token.get('created_timestamp', 0)
     now = int(time.time() * 1000)
     minutes_ago = int((now - created) / 60000) if created else 0
@@ -75,7 +76,6 @@ def process_token(token):
     dev_sol = random.uniform(3, 20)
     dev_usd = dev_sol * 86.7
     
-    # 构建消息
     msg = f"💊💊💊 新代币 💊💊💊\\n\\n"
     msg += f"{token.get('name', '未知')} ({token.get('symbol', '未知')})\\n\\n"
     msg += f"🎲 CA:\\n{mint}\\n\\n"
