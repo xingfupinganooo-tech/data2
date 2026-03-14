@@ -30,9 +30,9 @@ def get_new_tokens():
     headers = {"accept": "application/json", "X-API-Key": MORALIS_KEY}
     try:
         r = requests.get(url, headers=headers, timeout=10)
+        print(f"API 原始返回: {r.text[:200]}", flush=True)  # 放在这里
         tokens = r.json().get('result', [])
         print(f"📊 获取到 {len(tokens)} 个新代币", flush=True)
-        
         return tokens
     except Exception as e:
         print(f"❌ 获取代币失败: {e}", flush=True)
