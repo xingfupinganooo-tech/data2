@@ -1,9 +1,9 @@
 name: Token Monitor
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '*/10 * * * *'   # 每10分钟运行一次
-  workflow_dispatch:          # 允许手动触发
+    - cron: '*/10 * * * *'
 
 jobs:
   monitor:
@@ -21,14 +21,15 @@ jobs:
         run: pip install requests
 
       - name: Run monitor
-         env:
-             MORALIS_KEY: ${{ secrets.MORALIS_KEY }}
-             WECHAT_URL: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-"
-         run: python monitor.py
-                         
+        env:
+          MORALIS_KEY: ${{ secrets.MORALIS_KEY }}
+          WECHAT_URL: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4-4895-9069-212f4698c3b6"
+        run: python monitor.py
+
       - name: Commit and push if changed
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add hot_tokens.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "自动更新代币数据" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "自动更新数据" && git push)
+          
