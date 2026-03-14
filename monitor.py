@@ -26,7 +26,7 @@ def send_wechat(msg):
 
 def get_new_tokens():
     """使用 Solscan 公开 API 获取最新代币（无需密钥）"""
-    url = "https://api.solscan.io/token/list"
+    url = "url = "https://pro-api.solscan.io/v2.0/token/list"
     params = {
         "sortBy": "createdTime",  # 按创建时间排序
         "direction": "desc",       # 倒序，最新的在前
