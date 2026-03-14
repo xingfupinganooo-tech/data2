@@ -1,44 +1,19 @@
 name: Token Monitor
 
 on:
-  schedule:
-    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:
   monitor:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
-
-      - name: Install dependencies
-        run: pip install requests
-
-      - name: 调试环境变量
-        env:
-          A: ${{ secrets.A }}
-          B: ${{ secrets.B }}
-          C: ${{ secrets.C }}
-        run: |
-          echo "========================"
-          echo "🔍 Secrets 调试信息"
-          echo "A 长度: ${#A}"
-          echo "B 长度: ${#B}"
-          echo "C 长度: ${#C}"
-          if [ ${#A} -eq 0 ]; then echo "❌ A 是空的"; else echo "✅ A 有值"; fi
-          if [ ${#B} -eq 0 ]; then echo "❌ B 是空的"; else echo "✅ B 有值"; fi
-          if [ ${#C} -eq 0 ]; then echo "❌ C 是空的"; else echo "✅ C 有值"; fi
-          echo "========================"
-
-      - name: Run monitor
+      - run: pip install requests
+      - run: python monitor.py
         env:
           A: ${{ secrets.A }}
           B: ${{ secrets.B }}
           C: https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=b6a24857-a6a4-4895-9069-212f4698c3b6
-        run: python monitor.py
