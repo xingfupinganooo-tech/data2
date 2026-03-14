@@ -1,28 +1,28 @@
-name: Token Monitor
+import os
+import sys
+import requests
+import time
+import json
+from datetime import datetime
 
-on:
-  schedule:
-    - cron: '*/10 * * * *'
-  workflow_dispatch:
+# ========== 从环境变量读取配置 ==========
+A = os.getenv('A')
+B = os.getenv('B')
+C = os.getenv('C')
 
-jobs:
-  monitor:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+print("="*50, flush=True)
+print("🔍 Python 环境变量检查")
+print(f"A 是否存在: {'A' in os.environ}")
+print(f"B 是否存在: {'B' in os.environ}")
+print(f"C 是否存在: {'C' in os.environ}")
+print("="*50, flush=True)
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
+if not A or not B or not C:
+    print("❌ 缺少环境变量", flush=True)
+    print(f"A = {A}")
+    print(f"B = {B}")
+    print(f"C = {C}")
+    sys.exit(1)
 
-      - name: Install dependencies
-        run: pip install requests
-
-      - name: Run monitor
-        env:
-          A: ${{ secrets.A }}
-          B: ${{ secrets.B }}
-          C: ${{ secrets.C }}
-        run: python monitor.py
+print("✅ 所有环境变量读取成功", flush=True)
+# ======================================
