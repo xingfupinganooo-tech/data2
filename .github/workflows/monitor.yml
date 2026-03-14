@@ -1,28 +1,44 @@
-import os
-import sys
-import requests
-import time
-import json
-from datetime import datetime
+name: Token Monitor
 
-# ========== 从环境变量读取配置 ==========
-A = os.getenv('A')
-B = os.getenv('B')
-C = os.getenv('C')
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
 
-print("="*50, flush=True)
-print("🔍 Python 环境变量检查")
-print(f"A 是否存在: {'A' in os.environ}")
-print(f"B 是否存在: {'B' in os.environ}")
-print(f"C 是否存在: {'C' in os.environ}")
-print("="*50, flush=True)
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-if not A or not B or not C:
-    print("❌ 缺少环境变量", flush=True)
-    print(f"A = {A}")
-    print(f"B = {B}")
-    print(f"C = {C}")
-    sys.exit(1)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-print("✅ 所有环境变量读取成功", flush=True)
-# ======================================
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: 检查 secrets 是否传进来了
+        env:
+          A: ${{ secrets.A }}
+          B: ${{ secrets.B }}
+          C: ${{ secrets.C }}
+        run: |
+          echo "========================"
+          echo "🔍 Secrets 检查"
+          echo "A 长度: ${#A}"
+          echo "B 长度: ${#B}"
+          echo "C 长度: ${#C}"
+          if [ ${#A} -eq 0 ]; then echo "❌ A 是空的"; else echo "✅ A 有值"; fi
+          if [ ${#B} -eq 0 ]; then echo "❌ B 是空的"; else echo "✅ B 有值"; fi
+          if [ ${#C} -eq 0 ]; then echo "❌ C 是空的"; else echo "✅ C 有值"; fi
+          echo "========================"
+
+      - name: Run monitor
+        env:
+          A: ${{ secrets.A }}
+          B: ${{ secrets.B }}
+          C: ${{ secrets.C }}
+        run: python monitor.py
