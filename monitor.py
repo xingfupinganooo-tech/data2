@@ -1,4 +1,16 @@
 # -*- coding: utf-8 -*-
+print("🔥🔥🔥 程序开始运行 🔥🔥🔥")
+print("第1行：导入模块")
+import requests
+print("第2行：requests导入成功")
+import time
+print("第3行：time导入成功")
+import json
+print("第4行：json导入成功")
+import random
+print("第5行：random导入成功")
+from datetime import datetime
+print("第6行：datetime导入成功")
 import requests
 import time
 import json
