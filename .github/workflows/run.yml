@@ -1,19 +1,20 @@
-name: Test Secrets 2
+name: Token Monitor
 
 on:
   workflow_dispatch:
 
 jobs:
-  test:
+  monitor:
     runs-on: ubuntu-latest
     steps:
-      - name: 直接打印环境变量
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install requests
+      - name: Run monitor
         env:
           A: ${{ secrets.A }}
           B: ${{ secrets.B }}
           C: ${{ secrets.C }}
-        run: |
-          echo "A 长度: ${#A}"
-          echo "B 长度: ${#B}"
-          echo "C 长度: ${#C}"
-          echo "A 第一个字符: ${A:0:1}"
+        run: python monitor.py
